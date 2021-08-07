@@ -7,4 +7,5 @@ it('it returns 200 when signup request is valid', (done) => {
     email: 'user1@gamil.com',
     password: 'P@assword',
   }).expect(200,done);
+  // if expect is not passed with done then it get value asynchronously i.e test doesn't wait for response
 });
