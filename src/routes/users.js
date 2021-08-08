@@ -4,16 +4,24 @@ const { register } = require('../controller/users');
 
 const validateUsername = (req, res, next) => {
   const user = req.body;
+
   if (user.username === null) {
-    return res.status(400).send({
-      validationErrors: {
-        username: 'Username cannot be null',
-      },
-    });
+    req.validationErrors = {
+      username: 'Username cannot be null',
+    };
   }
   next();
 };
 
-router.post('/', validateUsername, register);
+const validateEmail = (req, res, next) => {
+  const user = req.body;
+  if (user.email === null) {
+    req.validationErrors = { ...req.validationErrors, email: 'Email cannot be null' };
+  }
+  next();
+};
+
+
+router.post('/', [validateUsername, validateEmail], register);
 
 module.exports = router;
