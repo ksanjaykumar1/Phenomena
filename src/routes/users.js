@@ -3,13 +3,11 @@ const router = express.Router();
 const User = require('../model/User');
 const bcrypt = require('bcrypt');
 
-router.post('/', (req, res) => {
-  bcrypt.hash(req.body.password, 10).then((hash) => {
-    const user = { ...req.body, password: hash };
-    User.create(user).then(() => {
-      return res.status(200).send({ message: 'User created' });
-    });
-  });
+router.post('/', async (req, res) => {
+  const hash = await bcrypt.hash(req.body.password, 10);
+  const user = { ...req.body, password: hash };
+  await User.create(user);
+  return res.status(200).send({ message: 'User created' });
 });
 
 module.exports = router;
