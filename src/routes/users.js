@@ -1,27 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { register } = require('../controller/users');
+const { check, validationResult } = require('express-validator');
 
-const validateUsername = (req, res, next) => {
-  const user = req.body;
-
-  if (user.username === null) {
-    req.validationErrors = {
-      username: 'Username cannot be null',
-    };
-  }
-  next();
-};
-
-const validateEmail = (req, res, next) => {
-  const user = req.body;
-  if (user.email === null) {
-    req.validationErrors = { ...req.validationErrors, email: 'Email cannot be null' };
-  }
-  next();
-};
-
-
-router.post('/', [validateUsername, validateEmail], register);
+router.post(
+  '/',
+  check('username').notEmpty().withMessage('Username cannot be null'),
+  check('email').notEmpty().withMessage('Email cannot be null'),
+  register
+);
 
 module.exports = router;
