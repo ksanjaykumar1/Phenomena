@@ -81,6 +81,7 @@ describe('User registration', () => {
     expect(Object.keys(response.body.validationErrors)).toEqual(['username', 'email']);
   });
 
+  //dynamic tests
   it.each([
     ['username', 'Username cannot be null'],
     ['email', 'Email cannot be null'],
@@ -96,26 +97,20 @@ describe('User registration', () => {
     expect(response.body.validationErrors[field]).toBe(expectedMessage);
   });
 
-  // it('return username cannot be null when username is null ', async () => {
-  //   const response = await postUser(invalidUser);
-  //   expect(response.body.validationErrors.username).toBe('Username cannot be null');
-  // });
+  it.each`
+  field         | expectedMessage
+  ${'username'} | ${'Username cannot be null'}
+  ${'email'}    | ${'Email cannot be null'}
+  ${'password'} | ${'Password cannot be null'}
+  `(`returns $expectedMessage when $field is null`,async({field,expectedMessage})=>{
+    const user ={
+      username:'user1',
+      email:'user1@gmail.com',
+      password:'P@ssword'
+    }
+    user[field]=null
+    const response = await postUser(user)
+    expect(response.body.validationErrors[field]).toBe(expectedMessage)
+  })
 
-  // it('return email cannot be null when email is null ', async () => {
-  //   const response = await postUser({
-  //     username: 'user1',
-  //     email: null,
-  //     password: 'P@assword',
-  //   });
-  //   expect(response.body.validationErrors.email).toBe('Email cannot be null');
-  // });
-
-  // it('return password cannot be null when password is null', async () => {
-  //   const response = await postUser({
-  //     username: 'user1',
-  //     email: 'user@gmail.comm',
-  //     password: null,
-  //   });
-  //   expect(response.body.validationErrors.password).toBe('Password cannot be null');
-  // });
 });
