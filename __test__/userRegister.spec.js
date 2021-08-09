@@ -82,35 +82,31 @@ describe('User registration', () => {
   });
 
   //dynamic tests
-  it.each([
-    ['username', 'Username cannot be null'],
-    ['email', 'Email cannot be null'],
-    ['password', 'Password cannot be null'],
-  ])('when  %s is null %s is received', async (field, expectedMessage) => {
+
+  it.each`
+    field         | value   | expectedMessage
+    ${'username'} | ${null} | ${'Username cannot be null'}
+    ${'email'}    | ${null} | ${'Email cannot be null'}
+    ${'password'} | ${null} | ${'Password cannot be null'}
+    ${'username'} | ${'use'} | ${'Must have min 4 and max 37 characters'}
+  `(`returns $expectedMessage when $field is null`, async ({ field, expectedMessage,value }) => {
     const user = {
       username: 'user1',
       email: 'user1@gmail.com',
-      password: 'P@assword',
+      password: 'P@ssword',
     };
-    user[field] = null;
+    user[field] = value;
     const response = await postUser(user);
     expect(response.body.validationErrors[field]).toBe(expectedMessage);
   });
 
-  it.each`
-  field         | expectedMessage
-  ${'username'} | ${'Username cannot be null'}
-  ${'email'}    | ${'Email cannot be null'}
-  ${'password'} | ${'Password cannot be null'}
-  `(`returns $expectedMessage when $field is null`,async({field,expectedMessage})=>{
-    const user ={
-      username:'user1',
-      email:'user1@gmail.com',
-      password:'P@ssword'
-    }
-    user[field]=null
-    const response = await postUser(user)
-    expect(response.body.validationErrors[field]).toBe(expectedMessage)
-  })
-
+  it('returns size validation error when username is less than 4 character', async () => {
+    const user = {
+      username: 'use',
+      email: 'user1@gmail.com',
+      password: 'password',
+    };
+    const response = await postUser(user);
+    expect(response.body.validationErrors.username).toBe('Must have min 4 and max 37 characters');
+  });
 });
