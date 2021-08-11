@@ -2,7 +2,9 @@ const request = require('supertest');
 const app = require('../src/app');
 const sequelize = require('../src/config/database');
 const User = require('../src/model/User');
-
+const nodemailerStub = require('nodemailer-stub');
+const Email = require('../src/controller/email');
+// const jest = require('jest')
 beforeAll(() => {
   // run before each test suit
   return sequelize.sync();
@@ -144,7 +146,62 @@ describe('User registration', () => {
     await postUser(newUser);
     const users = await User.findAll();
     const savedUser = users[0];
-    console.log(savedUser);
     expect(savedUser.inactive).toBe(true);
+  });
+
+  it('creates a activation token for user', async () => {
+    await postUser(validUser);
+    const users = await User.findAll();
+    const savedUser = users[0];
+    //to check if activation token has value in it
+    expect(savedUser.activationToken).toBeTruthy();
+  });
+
+  it('sends an Account activation email with activationToken', async () => {
+    await postUser({
+      username: 'user1',
+      email: 'ksanjayk@protonmail.com',
+      password: 'P4@assword',
+    });
+    const lastMail = nodemailerStub.interactsWithMail.lastMail();
+    expect(lastMail.to[0]).toContain('ksanjayk@protonmail.com');
+    const users = await User.findAll();
+    const savedUser = users[0];
+    expect(lastMail.content).toContain(savedUser.activationToken);
+  });
+
+  it('return 502 Bad Gateway when sending email fails', async () => {
+    const mockSendAccountActivation= jest
+      .spyOn(Email, 'sendAccountActivation')
+      .mockRejectedValue({ msg: 'failed to deliever email' });
+    const response = await postUser();
+    expect(response.status).toBe(502);
+    mockSendAccountActivation.mockRestore()
+  });
+  it('return 502 Bad Gateway when sending email fails', async () => {
+    const mockSendAccountActivation= jest
+      .spyOn(Email, 'sendAccountActivation')
+      .mockRejectedValue({ msg: 'failed to deliever email' });
+    const response = await postUser();
+    expect(response.status).toBe(502);
+    mockSendAccountActivation.mockRestore()
+  });
+  it('return E-mail Failure when sending email fails', async () => {
+    const mockSendAccountActivation= jest
+      .spyOn(Email, 'sendAccountActivation')
+      .mockRejectedValue({ msg: 'failed to deliever email' });
+    const response = await postUser();
+    expect(response.body.message).toBe('E-mail Failure');
+    mockSendAccountActivation.mockRestore()
+  });
+
+  it('does not save user to database if activation email fails', async () => {
+    const mockSendAccountActivation= jest
+      .spyOn(Email, 'sendAccountActivation')
+      .mockRejectedValue({ msg: 'failed to deliever email' });
+    await postUser();
+    const userList = await User.findAll()
+    expect(userList.length).toBe(0)
+    mockSendAccountActivation.mockRestore()
   });
 });
