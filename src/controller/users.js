@@ -4,7 +4,7 @@ const { validationResult } = require('express-validator');
 const crypto = require('crypto');
 const Email = require('./email');
 const sequelize = require('../config/database');
-
+const EmailException = require('../errors/EmailException')
 const generateToken = (length) => {
   return crypto.randomBytes(length).toString('hex').substring(0, length);
 };
@@ -28,11 +28,11 @@ const register = async (req, res) => {
       await transaction.commit();
     } catch (err) {
       await transaction.rollback();
-      throw new Error(err);
+      throw new EmailException();
     }
     return res.status(200).send({ message: 'User created' });
   } catch (err) {
-    return res.status(502).send({ message: 'E-mail Failure' });
+    return res.status(502).send({ message: err.message });
   }
 };
 
